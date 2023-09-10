@@ -41,14 +41,14 @@ const Player = (name, token) => {
 }
 
 const Controller = (() => {
-    const player1 = Player("Player 1", "X")
-    const player2 = Player("Player 2", "O")
 
-    const players = [player1, player2]
-
+    let player1;
+    let player2;
+    
+    let players = [player1, player2]
     let filledCells = 0;
 
-    let activePlayer = players[0]
+    let activePlayer;
 
     const switchTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
@@ -66,7 +66,7 @@ const Controller = (() => {
             if (board[i][0] == board[i][1] && 
                 board[i][2] == board[i][1] &&
                 board[i][0] !== ""){
-                    return getWinner(board[i][0])
+                    return getWinner(board[0][0])
             }
 
             if (board[0][i] == board[1][i] &&
@@ -96,20 +96,35 @@ const Controller = (() => {
         filledCells = 0
     }
 
+    const initializePlayers = () => {
+        const player1Name = document.getElementById("player1-name").value || "Player 1";
+        const player2Name = document.getElementById("player2-name").value || "Player 2";
+        player1 = Player(player1Name, "X");
+        player2 = Player(player2Name, "O");
+    };
+
+    const startGame = () => {
+        initializePlayers()
+        players = [player1, player2];
+        activePlayer = players[0]
+    };
+
 
 
     const playRound = (index) => {
         let placed = Gameboard.placeToken(index, activePlayer.token)
         let winner = checkWinner(Gameboard.getBoard())
         filledCells++;
-        if (filledCells === 9){
-            alert("Draw")
-        }
         if (placed){
             switchTurn()
         }
         if (winner != null){
             ScreenController.showWinnerMessage(winner);
+            resetGame()
+            return
+        }
+        if (filledCells === 9){
+            alert("Draw")
             resetGame()
         }
     }
@@ -117,6 +132,7 @@ const Controller = (() => {
     return {
         playRound,
         getActivePlayer,
+        startGame,
         resetGame
         
     }
@@ -124,6 +140,8 @@ const Controller = (() => {
 
 
 const ScreenController = (() => {
+    const container = document.querySelector(".container")
+    const canvas = document.querySelector("canvas")
     const cells = document.querySelectorAll(".cell")
     const board = Gameboard.getBoard()
     const isTurn = document.querySelector(".turn")
@@ -153,7 +171,7 @@ const ScreenController = (() => {
     };
 
     const triggerConfetti = () => {
-        document.getElementById("confetti-holder").style.display = "block";
+        canvas.style.display = "block";
         const confettiSettings = {
             target: "confetti-holder", 
             max: 180,
@@ -173,7 +191,7 @@ const ScreenController = (() => {
         const confetti = new ConfettiGenerator(confettiSettings);
         confetti.render();
         setTimeout(() => {
-            document.getElementById("confetti-holder").style.display = "none";
+            canvas.style.display = "none";
         }, 2000)
     }
 
@@ -193,6 +211,14 @@ const ScreenController = (() => {
             updateCells()
             setIsTurn()
         })
+
+        document.getElementById("start-game").addEventListener("click", () => {
+            Controller.startGame();
+            setIsTurn();
+            document.getElementById("player-names").style.display = "none";
+            container.style.display = "grid";
+            document.querySelector(".desc").style.display = "block";
+        });
     }
 
     return {
