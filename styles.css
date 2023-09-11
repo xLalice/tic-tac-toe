@@ -45,7 +45,7 @@ canvas {
     display: none;
 }
 
-#player-names {
+.player-names {
     text-align: center;
     padding: 20px;
     background-color: #f0f0f0;
@@ -74,10 +74,22 @@ button {
     transition: background-color 0.3s ease;
 }
 
-#start-game:hover {
+button:hover {
     background-color: #0056b3;
 }
 
 canvas {
     position: absolute;
+}
+
+#winner-message {
+    font-family: 'Dancing Script', cursive;;
+    font-size: 3rem;
+    background-color: #fff;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    position: fixed;
+    z-index: 999;
 }

@@ -5,15 +5,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Dancing+Script">
     <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-    <div id="player-names">
+    <canvas id="confetti-holder"></canvas>
+    <div class="player-names">
         <input type="text" id="player1-name" placeholder="Player 1 Name">
         <input type="text" id="player2-name" placeholder="Player 2 Name">
         <button id="start-game">Start Game</button>
     </div>
-    <canvas id="confetti-holder"></canvas>
+    
     <div class="container">
         <div class="cell" data-key="0"></div>
         <div class="cell" data-key="1"></div>

@@ -1,231 +1,234 @@
+// Gameboard module
 const Gameboard = (() => {
-    let board = [
-                 ["", "", ""],
-                 ["", "", ""],
-                 ["", "", ""]
-                ]
+    const BOARD_SIZE = 3;
+    let _board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(""));
 
     const placeToken = (index, token) => {
-        const row = Math.floor(index / 3);
-        const col = index % 3;
-        if (board[row][col] === "") {
-            board[row][col] = token;
-            return true
+        const row = Math.floor(index / BOARD_SIZE);
+        const col = index % BOARD_SIZE;
+        if (_board[row][col] === "") {
+            _board[row][col] = token;
+            return true;
         } else {
             return false;
         }
     };
 
-    const getBoard = () => board;
+    const getBoard = () => _board;
 
-    const resetBoard = () => {
-        for (let i = 0; i < 3; i++){
-            for (let j = 0; j < 3; j++){
-                board[i][j] = ""
-            }
-        }
+    const resetBoard = () => { 
+        for (let i = 0; i < BOARD_SIZE; i++){
+            for (let j = 0; j < BOARD_SIZE; j++){
+                _board[i][j] = "" } 
+        } 
     }
 
     return {
         placeToken,
         getBoard,
-        resetBoard
-    }
-})()
+        resetBoard,
+    };
+})();
 
-const Player = (name, token) => {
-    return {
-        name,
-        token
-    }
-}
+// Player factory function
+const Player = (name, token) => ({ name, token });
 
+// Controller module
 const Controller = (() => {
-
+    const BOARD_SIZE = 3;
+    const TOTAL_CELLS = BOARD_SIZE ** 2;
     let player1;
     let player2;
-    
-    let players = [player1, player2]
+    let players = [player1, player2];
     let filledCells = 0;
-
-    let activePlayer;
+    let _activePlayer;
 
     const switchTurn = () => {
-        activePlayer = activePlayer === players[0] ? players[1] : players[0];
-    }
+        _activePlayer = _activePlayer === players[0] ? players[1] : players[0];
+    };
 
-    const getActivePlayer = () => activePlayer;
+    const getActivePlayer = () => _activePlayer;
 
     const getWinner = (token) => {
-        const winningPlayer = players.find(player => player.token === token);
+        const winningPlayer = players.find((player) => player.token === token);
         return winningPlayer ? winningPlayer.name : null;
-    }
+    };
 
     const checkWinner = (board) => {
-        for (let i = 0; i < 3; i++){
-            if (board[i][0] == board[i][1] && 
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            if (
+                board[i][0] == board[i][1] &&
                 board[i][2] == board[i][1] &&
-                board[i][0] !== ""){
-                    return getWinner(board[0][0])
+                board[i][0] !== ""
+            ) {
+                return getWinner(board[0][0]);
             }
 
-            if (board[0][i] == board[1][i] &&
+            if (
+                board[0][i] == board[1][i] &&
                 board[1][i] == board[2][i] &&
-                board[0][i] !== ""){
-                    return getWinner(board[0][1])
+                board[0][i] !== ""
+            ) {
+                return getWinner(board[0][1]);
             }
-
         }
 
-        if ((board[0][0] == board[1][1] &&
-            board[1][1] == board[2][2] &&
-            board[0][0] !== "") ||
+        if (
+            (board[0][0] == board[1][1] &&
+                board[1][1] == board[2][2] &&
+                board[0][0] !== "") ||
             (board[0][2] == board[1][1] &&
-             board[1][1] == board[2][0] &&
-             board[1][1] !== "")){
-                return getWinner(board[1][1])
-            }
+                board[1][1] == board[2][0] &&
+                board[1][1] !== "")
+        ) {
+            return getWinner(board[1][1]);
+        }
 
         return null;
-            
-    }
-        
+    };
+
     const resetGame = () => {
-        Gameboard.resetBoard()
-        activePlayer = players[0]
-        filledCells = 0
-    }
+        Gameboard.resetBoard();
+        _activePlayer = players[0];
+        filledCells = 0;
+        ScreenController.updateAllCells();
+    };
 
     const initializePlayers = () => {
         const player1Name = document.getElementById("player1-name").value || "Player 1";
         const player2Name = document.getElementById("player2-name").value || "Player 2";
         player1 = Player(player1Name, "X");
         player2 = Player(player2Name, "O");
-    };
-
-    const startGame = () => {
-        initializePlayers()
         players = [player1, player2];
-        activePlayer = players[0]
+        _activePlayer = players[0];
     };
-
-
 
     const playRound = (index) => {
-        let placed = Gameboard.placeToken(index, activePlayer.token)
-        let winner = checkWinner(Gameboard.getBoard())
+        const placed = Gameboard.placeToken(index, _activePlayer.token);
+        const winner = checkWinner(Gameboard.getBoard());
         filledCells++;
-        if (placed){
-            switchTurn()
+        if (placed) {
+            switchTurn();
         }
-        if (winner != null){
+        if (winner != null) {
             ScreenController.showWinnerMessage(winner);
-            resetGame()
-            return
+            resetGame();
+            return;
         }
-        if (filledCells === 9){
-            alert("Draw")
-            resetGame()
+        if (filledCells === TOTAL_CELLS) {
+            alert("Draw");
+            resetGame();
         }
-    }
+    };
 
     return {
         playRound,
         getActivePlayer,
-        startGame,
-        resetGame
-        
-    }
-})()
+        resetGame,
+        initializePlayers,
+    };
+})();
 
-
+// ScreenController module
 const ScreenController = (() => {
-    const container = document.querySelector(".container")
-    const canvas = document.querySelector("canvas")
-    const cells = document.querySelectorAll(".cell")
-    const board = Gameboard.getBoard()
-    const isTurn = document.querySelector(".turn")
-    const resetButton = document.getElementById("reset")
+    const canvas = document.querySelector("canvas");
+    const cells = document.querySelectorAll(".cell");
+    const isTurn = document.querySelector(".turn");
+    const board = Gameboard.getBoard();
 
     const setIsTurn = () => {
         isTurn.textContent = `${Controller.getActivePlayer().name}'s turn`;
-    }
+    };
 
     const showWinnerMessage = (winner) => {
         const winnerMessage = document.getElementById("winner-message");
         const winningPlayer = document.getElementById("winning-player");
         winningPlayer.textContent = winner;
-        winnerMessage.showModal()
+        winnerMessage.showModal();
         triggerConfetti();
         setTimeout(() => {
-            winnerMessage.close()
-        }, 2000)
-    }
+            winnerMessage.close();
+        }, 2000);
+    };
 
-    const updateCells = () => {
+    const updateCell = (index) => {
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        cells[index].textContent = board[row][col];
+    };
+
+    const updateAllCells = () => {
         for (let i = 0; i < cells.length; i++) {
-            const row = Math.floor(i / 3);
-            const col = i % 3;
-            cells[i].textContent = board[row][col];
+            updateCell(i);
         }
     };
 
     const triggerConfetti = () => {
         canvas.style.display = "block";
         const confettiSettings = {
-            target: "confetti-holder", 
+            target: "confetti-holder",
             max: 180,
-            size: 1, 
-            animate: true, 
-            respawn: true, 
-            props: ['circle', 'square', 'triangle', 'line'], 
-            colors: [[165, 104, 246], [230, 61, 135], [0, 199, 228], [253, 214, 126]], 
-            clock: 25, 
-            interval: null, 
-            rotate: false, 
-            start_from_edge: true, // Should confettis spawn at the top/bottom of the screen?
-            width: window.innerWidth, // Canvas width (as int, in px)
-            height: window.innerHeight // Canvas height (as int, in px)
+            size: 1,
+            animate: true,
+            respawn: true,
+            props: ["circle", "square", "triangle", "line"],
+            colors: [
+                [165, 104, 246],
+                [230, 61, 135],
+                [0, 199, 228],
+                [253, 214, 126],
+            ],
+            clock: 25,
+            interval: null,
+            rotate: false,
+            start_from_edge: true,
+            width: window.innerWidth,
+            height: window.innerHeight,
         };
 
         const confetti = new ConfettiGenerator(confettiSettings);
         confetti.render();
         setTimeout(() => {
             canvas.style.display = "none";
-        }, 2000)
-    }
+        }, 2000);
+    };
 
     const addEventListeners = () => {
-        for (const cell of cells) { 
-            cell.addEventListener("click", () => {
+        const resetButton = document.getElementById("reset");
+        const startGameBtn = document.getElementById("start-game");
+        const playerNames = document.querySelector(".player-names");
+        const desc = document.querySelector(".desc");
+        const container = document.querySelector(".container");
+
+        container.addEventListener("click", (event) => {
+            if (event.target.classList.contains("cell")) {
+                const cell = event.target;
                 const cellKey = parseInt(cell.getAttribute("data-key"));
-                Controller.playRound(cellKey)
-                setIsTurn()
-                updateCells()
-            })
-                
-        }
+                Controller.playRound(cellKey);
+                setIsTurn();
+                updateCell(cellKey);
+            }
+        });
 
         resetButton.addEventListener("click", () => {
-            Controller.resetGame()
-            updateCells()
-            setIsTurn()
-        })
-
-        document.getElementById("start-game").addEventListener("click", () => {
-            Controller.startGame();
+            Controller.resetGame();
             setIsTurn();
-            document.getElementById("player-names").style.display = "none";
-            container.style.display = "grid";
-            document.querySelector(".desc").style.display = "block";
         });
-    }
+
+        startGameBtn.addEventListener("click", () => {
+            Controller.initializePlayers();
+            setIsTurn();
+            playerNames.style.display = "none";
+            container.style.display = "grid";
+            desc.style.display = "block";
+        });
+    };
 
     return {
         addEventListeners,
-        showWinnerMessage
-    }
-})()
+        showWinnerMessage,
+        updateAllCells,
+    };
+})();
 
-ScreenController.addEventListeners()
-
+ScreenController.addEventListeners();
